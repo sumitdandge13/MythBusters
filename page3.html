@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MythBusters - Fact Check #2</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            overflow: hidden; /* Prevents body scrollbars */
+            
+            background-image: url('BG_02.png');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+        }
+
+        /* Phone Stage Area */
+        .stage {
+            width: 100%;
+            max-width: 380px;
+            height: 600px;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            padding-top: 20px;
+            overflow: hidden; /* FIX: Clips scaled elements pushing outside the 600px stage */
+        }
+
+        /* Page Heading */
+        .top-title {
+            color: #ffffff;
+            font-size: 1.8rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            opacity: 0;
+            animation: fadeIn 1s ease forwards 0.3s;
+        }
+
+        /* 3D Flip Card Container */
+        .card-container {
+            width: 90%;
+            height: 220px;
+            margin-top: 20px;
+            perspective: 1000px;
+            opacity: 0;
+            animation: popIn 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards 1.8s;
+            cursor: pointer;
+            z-index: 10;
+        }
+
+        .flip-card {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.8s cubic-bezier(0.4, 0.2, 0.2, 1);
+        }
+
+        .card-container.is-flipped .flip-card {
+            transform: rotateY(180deg);
+        }
+
+        .card-front, .card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 24px;
+            padding: 20px 24px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+
+        /* Question Side */
+        .card-front {
+            background: rgba(255, 255, 255, 0.88);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+
+        .question-tag {
+            background: #fef3c7;
+            color: #92400e;
+            font-size: 0.8rem;
+            font-weight: 700;
+            padding: 4px 12px;
+            border-radius: 12px;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+
+        .question-text {
+            font-size: 1.15rem;
+            color: #1e293b;
+            font-weight: 700;
+            line-height: 1.4;
+            margin-bottom: 10px;
+        }
+
+        .tap-hint {
+            font-size: 0.85rem;
+            color: #64748b;
+            font-weight: 500;
+            animation: pulse 1.5s infinite;
+        }
+
+        /* Answer Side */
+        .card-back {
+            background: rgba(43, 92, 83, 0.92);
+            color: #ffffff;
+            transform: rotateY(180deg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+
+        .answer-tag {
+            background: rgba(255, 255, 255, 0.2);
+            color: #ffffff;
+            font-size: 0.8rem;
+            font-weight: 700;
+            padding: 4px 12px;
+            border-radius: 12px;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+
+        .answer-text {
+            font-size: 1.5rem;
+            font-weight: 800;
+            margin-bottom: 8px;
+        }
+
+        .answer-subtext {
+            font-size: 0.95rem;
+            opacity: 0.9;
+            line-height: 1.4;
+        }
+
+        /* Character Trio Container */
+        .trio-container {
+            position: absolute;
+            bottom: -80px; /* Adjusted to fit inside stage bounds */
+            width: 100%;
+            height: 280px;
+            display: flex;
+            justify-content: space-around;
+            align-items: flex-end;
+            padding: 0 5px;
+            z-index: 5;
+            opacity: 0;
+            animation: fadeInUp 1.2s cubic-bezier(0.25, 1, 0.5, 1) forwards 0.5s;
+        }
+
+        /* Slot dimensions */
+        .char-slot {
+            position: relative;
+            width: 110px;
+            height: 220px;
+        }
+
+        /* Character scale & rendering */
+        .character-img {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            
+            transform: scale(2.1); /* Scaled up cleanly without breaking page overflow */
+            transform-origin: bottom center;
+            
+            filter: drop-shadow(0 8px 12px rgba(0, 0, 0, 0.25));
+            transition: opacity 0.8s ease-in-out, transform 0.3s ease;
+        }
+
+        /* Mood States */
+        .sad { opacity: 1; }
+        .happy { opacity: 0; }
+
+        /* Trigger cross-fade from Sad to Happy */
+        .trio-container.show-happy .sad { opacity: 0; }
+        .trio-container.show-happy .happy { opacity: 1; }
+
+        /* Speech Bubble Controls */
+        .speech-bubble {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%) scale(0.8);
+            background: #ffffff;
+            color: #1e293b;
+            padding: 8px 14px;
+            border-radius: 18px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.25);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            z-index: 100;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .speech-bubble::after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+            border-width: 8px 8px 0;
+            border-style: solid;
+            border-color: #ffffff transparent;
+            display: block;
+            width: 0;
+        }
+
+        .speech-text {
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: #334155;
+            white-space: nowrap;
+        }
+
+        .bubble-btn {
+            background: #2b5c53;
+            color: #ffffff;
+            font-size: 0.75rem;
+            font-weight: 700;
+            padding: 6px 12px;
+            border-radius: 20px;
+            text-decoration: none;
+            box-shadow: 0 4px 10px rgba(43, 92, 83, 0.3);
+            transition: transform 0.2s ease;
+        }
+
+        .bubble-btn:active {
+            transform: scale(0.95);
+        }
+
+        .speech-bubble.show {
+            opacity: 1;
+            transform: translateX(-50%) scale(1);
+            pointer-events: auto;
+        }
+
+        @keyframes fadeInUp {
+            0% { opacity: 0; transform: translateY(40px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes fadeIn { to { opacity: 1; } }
+
+        @keyframes popIn {
+            0% { opacity: 0; transform: scale(0.8) translateY(20px); }
+            100% { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.6; }
+            50% { opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="stage">
+        <h2 class="top-title">Myth Check #2</h2>
+
+        <!-- Interactive Question / Answer Card -->
+        <div class="card-container" id="mythCard" onclick="handleCardClick()">
+            <div class="flip-card">
+                <div class="card-front">
+                    <span class="question-tag">Rumor Alert</span>
+                    <div class="question-text">"Will we fight over my clothing sense as he might think it's too revealing?"</div>
+                    <div class="tap-hint">Tap card to verify 👆</div>
+                </div>
+                <div class="card-back">
+                    <span class="answer-tag">Fact Confirmed</span>
+                    <div class="answer-text">No Way! ✨</div>
+                    <div class="answer-subtext">He likes your fashion sense!</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3 Character Slots across the screen -->
+        <div class="trio-container" id="trioContainer">
+            <!-- Speech Bubble attached to the group -->
+            <div class="speech-bubble" id="speechBubble">
+                <span class="speech-text">Case closed! What's next? ✨</span>
+                <a href="page4.html" class="bubble-btn">Continue ➔</a>
+            </div>
+
+            <!-- Left Character (character1 = Sad, character2 = Happy) -->
+            <div class="char-slot">
+                <img src="character1.png" alt="Sad Left" class="character-img sad">
+                <img src="character2.png" alt="Happy Left" class="character-img happy">
+            </div>
+
+            <!-- Middle Character (character3 = Sad, character4 = Happy) -->
+            <div class="char-slot">
+                <img src="character3.png" alt="Sad Center" class="character-img sad">
+                <img src="character4.png" alt="Happy Center" class="character-img happy">
+            </div>
+
+            <!-- Right Character (character5 = Sad, character6 = Happy) -->
+            <div class="char-slot">
+                <img src="character5.png" alt="Sad Right" class="character-img sad">
+                <img src="character6.png" alt="Happy Right" class="character-img happy">
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let isActivated = false;
+
+        function handleCardClick() {
+            if (isActivated) return;
+            isActivated = true;
+
+            const card = document.getElementById('mythCard');
+            const trio = document.getElementById('trioContainer');
+            const speechBubble = document.getElementById('speechBubble');
+
+            card.classList.add('is-flipped');
+
+            setTimeout(() => {
+                trio.classList.add('show-happy');
+            }, 3500);
+
+            setTimeout(() => {
+                speechBubble.classList.add('show');
+            }, 5000);
+        }
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MythBusters - Fact Check #1</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            overflow: hidden;
+            
+            background-image: url('BG_01.png');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+        }
+
+        /* Phone Stage Area */
+        .stage {
+            width: 100%;
+            max-width: 380px;
+            height: 600px;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            padding-top: 20px;
+        }
+
+        /* Page Heading */
+        .top-title {
+            color: #ffffff;
+            font-size: 1.8rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            opacity: 0;
+            animation: fadeIn 1s ease forwards 0.3s;
+        }
+
+        /* 3D Flip Card Container */
+        .card-container {
+            width: 90%;
+            height: 200px;
+            margin-top: 20px;
+            perspective: 1000px;
+            opacity: 0;
+            animation: popIn 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards 2.2s;
+            cursor: pointer;
+            z-index: 10;
+        }
+
+        .flip-card {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.8s cubic-bezier(0.4, 0.2, 0.2, 1);
+        }
+
+        .card-container.is-flipped .flip-card {
+            transform: rotateY(180deg);
+        }
+
+        .card-front, .card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 24px;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+
+        /* Question Side */
+        .card-front {
+            background: rgba(255, 255, 255, 0.88);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+
+        .question-tag {
+            background: #fef3c7;
+            color: #92400e;
+            font-size: 0.8rem;
+            font-weight: 700;
+            padding: 4px 12px;
+            border-radius: 12px;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+        }
+
+        .question-text {
+            font-size: 1.5rem;
+            color: #1e293b;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+
+        .tap-hint {
+            font-size: 0.85rem;
+            color: #64748b;
+            font-weight: 500;
+            animation: pulse 1.5s infinite;
+        }
+
+        /* Answer Side */
+        .card-back {
+            background: rgba(43, 92, 83, 0.92);
+            color: #ffffff;
+            transform: rotateY(180deg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+
+        .answer-tag {
+            background: rgba(255, 255, 255, 0.2);
+            color: #ffffff;
+            font-size: 0.8rem;
+            font-weight: 700;
+            padding: 4px 12px;
+            border-radius: 12px;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+        }
+
+        .answer-text {
+            font-size: 1.6rem;
+            font-weight: 800;
+            margin-bottom: 8px;
+        }
+
+        .answer-subtext {
+            font-size: 0.95rem;
+            opacity: 0.9;
+            line-height: 1.4;
+        }
+
+        /* Character Container */
+        .character-wrapper {
+            position: absolute;
+            bottom: 0px;
+            left: -150px;
+            width: 220px;
+            height: 300px;
+            z-index: 5;
+            animation: walkIn 2s cubic-bezier(0.25, 1, 0.5, 1) forwards 0.5s;
+        }
+
+        .character-img {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 120%;
+            height: 120%;
+            object-fit: contain;
+            filter: drop-shadow(0 10px 15px rgba(0, 0, 0, 0.2));
+            transition: opacity 0.8s ease-in-out;
+        }
+
+        .char1 { opacity: 1; }
+        .char2 { opacity: 0; }
+
+        .character-wrapper.show-char2 .char1 { opacity: 0; }
+        .character-wrapper.show-char2 .char2 { opacity: 1; }
+
+        /* Speech Bubble Placement Controls */
+        .speech-bubble {
+            position: absolute;
+            top: 150px;             /* Control Vertical Height relative to character */
+			left: 60%;              /* Control Horizontal Position */
+            transform: translateX(-50%) scale(0.8);
+            background: #ffffff;
+            color: #1e293b;
+            padding: 10px 16px;
+            border-radius: 18px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.25);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            z-index: 100;           /* High z-index keeps it over the card */
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .speech-bubble::after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 40%;
+            transform: translateX(-50%);
+            border-width: 8px 8px 0;
+            border-style: solid;
+            border-color: #ffffff transparent;
+            display: block;
+            width: 0;
+        }
+
+        .speech-text {
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: #334155;
+            white-space: nowrap;
+        }
+
+        .bubble-btn {
+            background: #2b5c53;
+            color: #ffffff;
+            font-size: 0.75rem;
+            font-weight: 700;
+            padding: 6px 12px;
+            border-radius: 20px;
+            text-decoration: none;
+            box-shadow: 0 4px 10px rgba(43, 92, 83, 0.3);
+            transition: transform 0.2s ease;
+        }
+
+        .bubble-btn:active {
+            transform: scale(0.95);
+        }
+
+        .speech-bubble.show {
+            opacity: 1;
+            transform: translateX(-50%) scale(1);
+            pointer-events: auto;
+        }
+
+        @keyframes walkIn {
+            0% { left: -150px; transform: translateY(30px) rotate(-5deg); }
+            100% { left: 15px; transform: translateY(0) rotate(0deg); }
+        }
+
+        @keyframes fadeIn { to { opacity: 1; } }
+
+        @keyframes popIn {
+            0% { opacity: 0; transform: scale(0.8) translateY(20px); }
+            100% { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.6; }
+            50% { opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="stage">
+        <h2 class="top-title">Myth Check #1</h2>
+
+        <!-- Interactive Question / Answer Card -->
+        <div class="card-container" id="mythCard" onclick="handleCardClick()">
+            <div class="flip-card">
+                <div class="card-front">
+                    <span class="question-tag">Rumor Alert</span>
+                    <div class="question-text">"Does he drink?"</div>
+                    <div class="tap-hint">Tap card to verify 👆</div>
+                </div>
+                <div class="card-back">
+                    <span class="answer-tag">Fact Confirmed</span>
+                    <div class="answer-text">Only Water! 💧</div>
+                    <div class="answer-subtext">Stay hydrated, stay healthy. Zero exceptions!</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dual Character Stack -->
+        <div class="character-wrapper" id="charWrapper">
+            <div class="speech-bubble" id="speechBubble">
+                <span class="speech-text">Okay, but what about the next one? 🤔</span>
+                <a href="page3.html" class="bubble-btn">Next Myth ➔</a>
+            </div>
+
+            <img src="character1.png" alt="Curious Character" class="character-img char1">
+            <img src="character2.png" alt="Reaction Character" class="character-img char2">
+        </div>
+    </div>
+
+    <script>
+        let isActivated = false;
+
+        function handleCardClick() {
+            if (isActivated) return;
+            isActivated = true;
+
+            const card = document.getElementById('mythCard');
+            const charWrapper = document.getElementById('charWrapper');
+            const speechBubble = document.getElementById('speechBubble');
+
+            card.classList.add('is-flipped');
+
+            setTimeout(() => {
+                speechBubble.classList.add('show');
+            }, 5000);
+
+            setTimeout(() => {
+                charWrapper.classList.add('show-char2');
+            }, 3000);
+        }
+    </script>
+
+</body>
+</html>
