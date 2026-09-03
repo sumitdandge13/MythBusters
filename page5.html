@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MythBusters - Final Decision</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            overflow: hidden;
+            
+            background-image: url('BG_03.png');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+        }
+
+        /* Phone Stage Area */
+        .stage {
+            width: 100%;
+            max-width: 380px;
+            height: 600px;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            padding-top: 20px;
+            overflow: hidden;
+        }
+
+        /* Page Heading */
+        .top-title {
+            color: #ffffff;
+            font-size: 1.8rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            opacity: 0;
+            animation: fadeIn 1s ease forwards 0.3s;
+        }
+
+        /* Question Container Card */
+        .question-card {
+            width: 90%;
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-radius: 24px;
+            padding: 24px 20px;
+            margin-top: 25px;
+            text-align: center;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            z-index: 10;
+            opacity: 0;
+            animation: popIn 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards 0.8s;
+            transition: all 0.5s ease;
+        }
+
+        .card-tag {
+            background: #fef3c7;
+            color: #92400e;
+            font-size: 0.8rem;
+            font-weight: 700;
+            padding: 4px 12px;
+            border-radius: 12px;
+            display: inline-block;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+        }
+
+        .question-text {
+            font-size: 1.35rem;
+            color: #1e293b;
+            font-weight: 800;
+            line-height: 1.3;
+        }
+
+        /* Action Buttons Area - Appears after 3 seconds with a 2 second fade */
+        .button-zone {
+            width: 100%;
+            height: 180px;
+            position: relative;
+            margin-top: 20px;
+            z-index: 20;
+            opacity: 0;
+            animation: fadeIn 2s ease forwards 3.8s;
+        }
+
+        .btn {
+            padding: 14px 28px;
+            font-size: 1rem;
+            font-weight: 800;
+            border-radius: 30px;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+            transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), background 0.3s ease;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* YES Button */
+        .btn-yes {
+            background: #2b5c53;
+            color: #ffffff;
+            position: absolute;
+            left: 50%;
+            top: 20px;
+            transform: translateX(-110%);
+        }
+
+        .btn-yes:active {
+            transform: translateX(-110%) scale(0.92);
+        }
+
+        /* NO Button (Teleporting) */
+        .btn-no {
+            background: #ef4444;
+            color: #ffffff;
+            position: absolute;
+            left: 50%;
+            top: 20px;
+            transform: translateX(10%);
+            transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        /* Character Slot with Dual Image Cross-fade */
+        .character-container {
+            position: absolute;
+            bottom: -20px;
+            width: 180px;
+            height: 250px;
+            z-index: 5;
+            opacity: 0;
+            animation: fadeInUp 1s ease forwards 0.5s;
+        }
+
+        .character-img {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            filter: drop-shadow(0 10px 15px rgba(0, 0, 0, 0.2));
+            transform: scale(1.3);
+            transform-origin: bottom center;
+            transition: opacity 1s ease-in-out;
+        }
+
+        .char1 { opacity: 1; }
+        .char2 { opacity: 0; }
+
+        /* Trigger state for character switch */
+        .character-container.show-happy .char1 { opacity: 0; }
+        .character-container.show-happy .char2 { opacity: 1; }
+
+        /* Celebration Card (Hidden initially) */
+        .success-card {
+            display: none;
+            width: 90%;
+            background: rgba(43, 92, 83, 0.95);
+            color: #ffffff;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-radius: 24px;
+            padding: 24px 20px;
+            margin-top: 25px;
+            text-align: center;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            z-index: 30;
+            animation: popIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+
+        .success-title {
+            font-size: 1.6rem;
+            font-weight: 800;
+            margin-bottom: 8px;
+        }
+
+        .success-subtext {
+            font-size: 0.95rem;
+            opacity: 0.9;
+            line-height: 1.4;
+            margin-bottom: 16px;
+        }
+
+        .final-btn {
+            display: inline-block;
+            background: #ffffff;
+            color: #2b5c53;
+            font-weight: 800;
+            font-size: 0.9rem;
+            padding: 10px 20px;
+            border-radius: 20px;
+            text-decoration: none;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+			
+			/* ADD THESE TWO LINES */
+			pointer-events: none;
+			opacity: 0.6;
+        }
+
+        /* Animations */
+        @keyframes fadeIn { to { opacity: 1; } }
+
+        @keyframes popIn {
+            0% { opacity: 0; transform: scale(0.8) translateY(20px); }
+            100% { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        @keyframes fadeInUp {
+            0% { opacity: 0; transform: translateY(40px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="stage" id="stage">
+        <h2 class="top-title">Final Question</h2>
+
+        <div class="question-card" id="qCard">
+            <span class="card-tag" id="cardTag">Moment of Truth</span>
+            <div class="question-text" id="qText">"Would you like to meet in person?"</div>
+        </div>
+
+        <div class="button-zone" id="btnZone">
+            <button class="btn btn-yes" id="yesBtn" onclick="handleYes()">YES! ✨</button>
+            <button class="btn btn-no" id="noBtn" onclick="teleportNo()">No 😜</button>
+        </div>
+
+        <div class="success-card" id="successCard">
+            <div class="success-title">Great! 🎉</div>
+            <div class="success-subtext">Myth officially busted. See you soon!</div>
+            <a href="page5.html" class="final-btn">😊</a>
+        </div>
+
+        <div class="character-container" id="charContainer">
+            <img src="character1.png" alt="Character Sad" class="character-img char1">
+            <img src="character2.png" alt="Character Happy" class="character-img char2">
+        </div>
+    </div>
+
+    <script>
+        let noAttempts = 0;
+
+        function teleportNo() {
+            noAttempts++;
+            const noBtn = document.getElementById('noBtn');
+            const btnZone = document.getElementById('btnZone');
+
+            if (noAttempts >= 4) {
+                // Transform into second YES button
+                noBtn.style.position = 'absolute';
+                noBtn.style.left = '70%';
+                noBtn.style.top = '120px';
+                noBtn.style.transform = 'translateX(-50%)';
+                noBtn.style.background = '#2b5c53';
+                noBtn.innerText = "YES! (No choice) 😂";
+                noBtn.onclick = handleYes;
+
+                // Fade character1 to character2 after 1 second delay
+                setTimeout(() => {
+                    document.getElementById('charContainer').classList.add('show-happy');
+                }, 3000);
+
+                return;
+            }
+
+            // Calculate random coordinates inside the button zone
+            const zoneWidth = btnZone.clientWidth - 100;
+            const zoneHeight = btnZone.clientHeight - 100;
+
+            const randomX = Math.floor(Math.random() * zoneWidth);
+            const randomY = Math.floor(Math.random() * zoneHeight);
+
+            noBtn.style.position = 'absolute';
+            noBtn.style.left = randomX + 'px';
+            noBtn.style.top = randomY + 'px';
+            noBtn.style.transform = 'none';
+        }
+
+        function handleYes() {
+            // Hide Question Card & Buttons
+            document.getElementById('qCard').style.display = 'none';
+            document.getElementById('btnZone').style.display = 'none';
+
+            // Show Success Card
+            document.getElementById('successCard').style.display = 'block';
+
+            // Ensure happy character is displayed
+            document.getElementById('charContainer').classList.add('show-happy');
+        }
+    </script>
+
+</body>
+</html>
